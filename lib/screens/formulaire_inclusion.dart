@@ -54,19 +54,16 @@ class FormulairePage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            ...List.generate(6, (index) {
-              return Column(
-                children: [
-                  _buildTextField(label: "Taille (cm)"),
-                  const SizedBox(height: 16),
-                  _buildTextField(label: "Poids (kg)"),
-                  const SizedBox(height: 16),
-                  _buildTextField(label: "Âge"),
-                  const SizedBox(height: 16),
-                ],
-              );
-            }),
+            // Taille
+            _buildTextField(label: "Taille (cm)"),
+            const SizedBox(height: 16),
+            // Poids
+            _buildTextField(label: "Poids (kg)"),
+            const SizedBox(height: 16),
+            // Âge
+            _buildTextField(label: "Âge"),
             const SizedBox(height: 32),
+            // Bouton Valider
             ElevatedButton(
               onPressed: () {
                 Navigator.push(
