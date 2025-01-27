@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'screens/accueil.dart';
-import 'screens/ajout_patient.dart';
-import 'screens/ajout_etude.dart';
-import 'screens/formulaire_inclusion.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Supabase.initialize(
+    url: 'https://gcnbamsqhqgxqulmyrho.supabase.co',
+    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdjbmJhbXNxaHFneHF1bG15cmhvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzc2MjYzNzAsImV4cCI6MjA1MzIwMjM3MH0.u8ClI_1qMu8rzRJkPnazmTBorrm9G--fLFdotAi0tH8',
+  );
   runApp(const MyApp());
 }
 
@@ -19,10 +22,6 @@ class MyApp extends StatelessWidget {
       initialRoute: '/',
       routes: {
         '/': (context) => const AccueilPage(),
-        '/formulaire': (context) => const FormulairePage(),
-        '/ajout_patient': (context) => const AjoutPatientPage(),
-        '/ajout_etude': (context) => const AjoutEtudePage(),
-        '/etude_details': (context) => const EtudePage(etudeIndex: 0), // Exemple
       },
     );
   }
