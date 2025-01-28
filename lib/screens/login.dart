@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:prismatics/screens/enregistrement.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'enregistrement.dart'; // Import de la page d'inscription
 
 class LoginPage extends StatelessWidget {
   final TextEditingController emailController = TextEditingController();
@@ -25,20 +27,17 @@ class LoginPage extends StatelessWidget {
           .maybeSingle();
 
       if (response == null) {
-        // Aucun utilisateur trouvé
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Utilisateur introuvable')),
         );
       } else {
-        // Vérifiez si le mot de passe correspond
         if (response['password'] == password) {
-          final role = response['role']; // Récupérez le rôle de l'utilisateur
-
+          final role = response['role'];
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Connexion réussie en tant que $role')),
           );
 
-          // Redirigez l'utilisateur vers AccueilPage
+          // Redirigez vers la page d'accueil
           Navigator.pushReplacementNamed(context, '/home');
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -47,7 +46,6 @@ class LoginPage extends StatelessWidget {
         }
       }
     } catch (e) {
-      // Gérer les erreurs
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erreur de connexion: $e')),
       );
@@ -81,11 +79,22 @@ class LoginPage extends StatelessWidget {
                 border: OutlineInputBorder(),
               ),
             ),
-            const SizedBox(height: 32),
-            // Bouton de connexion
+            const SizedBox(height: 16),
+            // Bouton pour se connecter
             ElevatedButton(
               onPressed: () => _login(context),
               child: const Text('Se connecter'),
+            ),
+            const SizedBox(height: 16),
+            // Bouton pour aller à la page d'inscription
+            TextButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => SignupPage()),
+                );
+              },
+              child: const Text('S\'inscrire'),
             ),
           ],
         ),

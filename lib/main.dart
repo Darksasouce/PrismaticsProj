@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:prismatics/screens/enregistrement.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'screens/login.dart';
 import 'screens/accueil.dart';
@@ -25,8 +26,9 @@ class MyApp extends StatelessWidget {
       initialRoute: '/',
       routes: {
         '/': (context) => const SplashScreen(), // Écran de chargement
-        '/login': (context) => LoginPage(),
-        '/home': (context) => const AccueilPage(),
+        '/login': (context) => LoginPage(), // Page de connexion
+        '/signup': (context) => SignupPage(), // Page d'inscription
+        '/home': (context) => const AccueilPage(), // Page d'accueil
       },
     );
   }
@@ -52,7 +54,8 @@ class SplashScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    _checkAuth(context); // Vérifiez l'authentification à l'ouverture
+    // Vérifiez l'état de l'utilisateur au chargement
+    _checkAuth(context);
     return const Scaffold(
       body: Center(
         child: CircularProgressIndicator(), // Indicateur de chargement
