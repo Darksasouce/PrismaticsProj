@@ -55,11 +55,11 @@ class AccueilPage extends StatelessWidget {
                 crossAxisSpacing: 10,
                 mainAxisSpacing: 10,
               ),
-              itemCount: 6, // Nombre d'études à afficher
+              itemCount: 2, // Nombre d'études à afficher
               itemBuilder: (context, index) {
                 String imagePath = index % 2 == 0
-                    ? 'assets/Icon_Etude1.png'
-                    : 'assets/Icon_Etude2.png';
+                    ? 'assets/Logo PREDIBACK 2.png'
+                    : 'assets/logo-BoostDRG.png';
                 return GestureDetector(
                   onTap: () {
                     Navigator.push(
