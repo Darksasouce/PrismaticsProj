@@ -1,168 +1,142 @@
 import 'package:flutter/material.dart';
+import 'detailsetudepredipain.dart';
+import 'detailsetudeprediback.dart';
+import 'DetailsEtudeBoostDRG.dart';
 import 'ajout_patient.dart';
 import 'ajout_etude.dart';
 import 'formulaire_inclusion.dart';
 
-class AccueilPage extends StatelessWidget {
+class AccueilPage extends StatefulWidget {
   const AccueilPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Prismatics',
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-        ),
-        centerTitle: true,
-        backgroundColor: Colors.blue,
-      ),
-      body: Column(
-        children: [
-          // Ligne des boutons principaux
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _buildIconButton(
-                  context,
-                  "Formulaire d'inclusion",
-                  'assets/formulaire.png',
-                  const FormulairePage(),
-                ),
-                _buildIconButton(
-                  context,
-                  "Ajout Patient",
-                  'assets/Icon_patient.png',
-                  const AjoutPatientPage(),
-                ),
-                _buildIconButton(
-                  context,
-                  "Ajout Étude",
-                  'assets/Ajout_Etude.png',
-                  const AjoutEtudePage(),
-                ),
-              ],
-            ),
-          ),
-          // Grille des études
-          Expanded(
-            child: GridView.builder(
-              padding: const EdgeInsets.all(16.0),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
-                crossAxisSpacing: 10,
-                mainAxisSpacing: 10,
-              ),
-              itemCount: 2, // Nombre d'études à afficher
-              itemBuilder: (context, index) {
-                String imagePath = index % 2 == 0
-                    ? 'assets/Logo PREDIBACK 2.png'
-                    : 'assets/logo-BoostDRG.png';
-                return GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => EtudePage(etudeIndex: index),
-                      ),
-                    );
-                  },
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(8),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.5),
-                          spreadRadius: 2,
-                          blurRadius: 5,
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Image.asset(
-                          imagePath,
-                          height: 50,
-                          fit: BoxFit.cover,
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Étude ${index + 1}',
-                          style: const TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.bold),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-          // Bas de page avec logos
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Image.asset(
-                'assets/chupoitiers.png',
-                height: 60,
-              ),
-              Image.asset(
-                'assets/prismatics.png',
-                height: 60,
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  // Fonction pour créer un bouton avec icône
-  Widget _buildIconButton(
-      BuildContext context, String label, String imagePath, Widget page) {
-    return ElevatedButton.icon(
-      onPressed: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => page),
-        );
-      },
-      icon: Image.asset(
-        imagePath,
-        height: 30,
-        fit: BoxFit.contain,
-      ),
-      label: Text(label),
-      style: ElevatedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        side: const BorderSide(color: Colors.blue),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8.0),
-        ),
-      ),
-    );
-  }
+  State<AccueilPage> createState() => _AccueilPageState();
 }
 
-class EtudePage extends StatelessWidget {
-  final int etudeIndex;
-  const EtudePage({super.key, required this.etudeIndex});
+class _AccueilPageState extends State<AccueilPage> {
+  final List<Map<String, dynamic>> etudes = [
+    {"nom": "Étude sur Prediback", "page": const DetailsEtudePrediback(), "image": "assets/prediback.png"},
+    {"nom": "Étude sur Predipain", "page": const DetailsEtudePredipain(), "image": "assets/predipain.png"},
+    {"nom": "Étude sur BoostDRG", "page": const DetailsEtudeBoostDRG(), "image": "assets/default_study.png"},
+  ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Étude ${etudeIndex + 1}')),
-      body: Center(
-        child: Text(
-          'Détails de l\'étude ${etudeIndex + 1}',
-          style: const TextStyle(fontSize: 18),
+      backgroundColor: Colors.blue.shade300, // Fond bleu
+      appBar: AppBar(
+        backgroundColor: Colors.grey.shade300, // Barre grise
+        title: const Text("Accueil éditeur", style: TextStyle(color: Colors.black)),
+        centerTitle: false,
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(12.0),
+        child: Column(
+          children: [
+            // **Boutons du haut agrandis**
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildButton("Formulaire d'Inclusion", Icons.article, const FormulairePage()),
+                _buildButton("Ajout Patient", Icons.person, const AjoutPatientPage()),
+                _buildButton("Ajout Étude", Icons.add_box, const AjoutEtudePage()),
+              ],
+            ),
+            const SizedBox(height: 20),
+
+            // **Grille des études**
+            Expanded(
+              child: GridView.builder(
+                padding: const EdgeInsets.all(8),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 4, // 4 colonnes comme dans ton image
+                  crossAxisSpacing: 10,
+                  mainAxisSpacing: 10,
+                  childAspectRatio: 1,
+                ),
+                itemCount: 12, // 3 études + 9 cases vides
+                itemBuilder: (context, index) {
+                  if (index < etudes.length) {
+                    final etude = etudes[index];
+                    return GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => etude["page"]),
+                        );
+                      },
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(8),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black26,
+                              blurRadius: 5,
+                              spreadRadius: 1,
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Image.asset(
+                              etude["image"],
+                              fit: BoxFit.contain,
+                              width: 80,
+                              height: 80,
+                              errorBuilder: (context, error, stackTrace) => const Icon(Icons.image_not_supported, size: 50),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              etude["nom"],
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  } else {
+                    // **Case vide**
+                    return Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.5),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    );
+                  }
+                },
+              ),
+            ),
+
+            // **Logos en bas**
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Image.asset('assets/chupoitiers.png', height: 60),
+                Image.asset('assets/prismatics.png', height: 60),
+              ],
+            ),
+          ],
         ),
+      ),
+    );
+  }
+
+  /// **Création des boutons du haut (Agrandis)**
+  Widget _buildButton(String title, IconData icon, Widget page) {
+    return ElevatedButton.icon(
+      onPressed: () {
+        Navigator.push(context, MaterialPageRoute(builder: (context) => page));
+      },
+      icon: Icon(icon, color: Colors.black, size: 24),
+      label: Text(title, style: const TextStyle(fontSize: 14, color: Colors.black)),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.white,
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12), // Boutons plus grands
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        side: const BorderSide(color: Colors.blue),
       ),
     );
   }

@@ -1,67 +1,90 @@
 import 'package:flutter/material.dart';
+import 'administrationpredipainPage.dart';
+import 'administrationpredibackPage.dart';
 
-class EtudePage extends StatelessWidget {
-  final int etudeIndex;
-  const EtudePage({super.key, required this.etudeIndex});
+class DetailsEtudePage extends StatelessWidget {
+  final String etude;
+
+  const DetailsEtudePage({super.key, required this.etude});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color(0xFF7E7EFF), // Couleur bleue
-        title: Text(
-          "Étude ${etudeIndex + 1}",
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 24,
-          ),
-        ),
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.home, size: 30, color: Colors.white), // Icône Home
-          onPressed: () {
-            Navigator.pop(context); // Retour à la page précédente
-          },
-        ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-            child: Image.asset(
-              'assets/prismatics.png', // Logo Prismatics
-              width: 80,
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-            child: Image.asset(
-              'assets/chupoitiers.png', // Logo CHU Poitiers
-              width: 50,
-            ),
-          ),
-        ],
+        title: Text('Détails de l\'étude - $etude'),
+        backgroundColor: _getColorForStudy(etude),
       ),
-      body: Center(
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Image.asset(
-              'assets/Icon_Etude1.png', // Par défaut, une icône d'étude
-              height: 100,
-              fit: BoxFit.cover,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              "Détails de l'étude ${etudeIndex + 1}",
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            _buildSectionTitle("Titre complet"),
+            _buildInfoBox(
+                "Description",
+                etude == "Prediback"
+                    ? "Identification des facteurs prédictifs des réponses et stratification des patients implantés..."
+                    : etude == "Predipain"
+                    ? "Évaluation des prises en charge thérapeutiques des patients lombalgiques chroniques..."
+                    : "Informations non disponibles"),
+            _buildSectionTitle("Navigation"),
+            _buildNavigationButton(
+              context,
+              "Administration",
+              etude == "Predipain" ? const AdministrationPredipainPage() : const AdministrationPredibackPage(),
             ),
           ],
         ),
       ),
-      bottomNavigationBar: Container(
-        color: const Color(0xFF7E7EFF), // Couleur bleue pour le bas de page
-        height: 20,
+    );
+  }
+
+  Widget _buildSectionTitle(String title) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Text(
+        title,
+        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
       ),
     );
+  }
+
+  Widget _buildInfoBox(String title, String content) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(8),
+      margin: const EdgeInsets.symmetric(vertical: 4),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+          if (content.isNotEmpty) Text(content),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNavigationButton(BuildContext context, String title, Widget page) {
+    return ElevatedButton(
+      onPressed: () {
+        Navigator.push(context, MaterialPageRoute(builder: (context) => page));
+      },
+      child: Text(title),
+    );
+  }
+
+  Color _getColorForStudy(String study) {
+    switch (study) {
+      case "Prediback":
+        return Colors.purple;
+      case "Predipain":
+        return Colors.green;
+      default:
+        return Colors.blueGrey;
+    }
   }
 }
