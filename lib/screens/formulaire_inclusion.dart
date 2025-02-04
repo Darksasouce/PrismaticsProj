@@ -21,12 +21,41 @@ class _FormulairePageState extends State<FormulairePage> {
   int? _age;
   String inclusionResult = "Aucune étude";
 
+  /// **🔹 Confirmation avant validation**
+  Future<void> _showConfirmationDialog() async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Text("Confirmer la validation"),
+          content: const Text("Êtes-vous sûr de vouloir soumettre ce formulaire ?"),
+          actions: <Widget>[
+            TextButton(
+              child: const Text("Annuler"),
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+              },
+            ),
+            ElevatedButton(
+              child: const Text("Confirmer"),
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+                _validateAndSubmit();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   /// **🔹 Déterminer l'étude et mettre à jour la base de données**
   Future<void> _validateAndSubmit() async {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
 
-      // **Déterminer l'étude selon les critères**
+      // **Arbre décisionnel pour l’inclusion**
       if (_chronicPain == true && _age != null && _age! >= 18) {
         if (_fbss == true && _priorTreatment == true && _vasScore != null && _vasScore! >= 50 && _scsTrialEligible == true) {
           inclusionResult = "Étude sur Prediback";
@@ -171,7 +200,7 @@ class _FormulairePageState extends State<FormulairePage> {
               const SizedBox(height: 32),
               Center(
                 child: ElevatedButton(
-                  onPressed: _validateAndSubmit,
+                  onPressed: _showConfirmationDialog,
                   child: const Text("Valider", style: TextStyle(fontSize: 20)),
                 ),
               ),
