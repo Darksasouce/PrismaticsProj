@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'administrationpredipainpage.dart';
 import 'SchemaRecherchePredipain.dart';
+import 'chart_predipain.dart'; // 🔹 Importation du graphique
 
 class DetailsEtudePredipain extends StatelessWidget {
   const DetailsEtudePredipain({super.key});
@@ -12,20 +13,35 @@ class DetailsEtudePredipain extends StatelessWidget {
         title: const Text("Détails de l'étude - Predipain"),
         backgroundColor: Colors.green,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildSectionTitle("Titre complet"),
-            _buildInfoBox(
-                "Évaluation des prises en charge thérapeutiques des patients lombalgiques chroniques dans leur parcours de soins."),
-            _buildSectionTitle("Navigation"),
-            _buildNavigationButton(
-                context, "Administration", const AdministrationPredipainPage()),
-            _buildNavigationButton(
-                context, "Schéma de Recherche", const SchemaRecherchePredipain()),
-          ],
+      body: SingleChildScrollView( // 🔹 Ajout d'un défilement pour éviter l'overflow
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildSectionTitle("Titre complet"),
+              _buildInfoBox(
+                  "Évaluation des prises en charge thérapeutiques des patients lombalgiques chroniques dans leur parcours de soins."),
+
+              _buildSectionTitle("Navigation"),
+              _buildNavigationButton(
+                  context, "Administration", const AdministrationPredipainPage()),
+              _buildNavigationButton(
+                  context, "Schéma de Recherche", const SchemaRecherchePredipain()),
+
+              const SizedBox(height: 20), // 🔹 Espacement pour bien séparer les sections
+
+              _buildSectionTitle("Évolution des inclusions"), // 🔹 Ajout du titre avant le graphique
+
+              // 🔥 🔹 Intégration directe du graphique ici !
+              SizedBox(
+                height: 400, // Ajuste la hauteur du graphique
+                child: const PredipainChart(),
+              ),
+
+              const SizedBox(height: 20), // 🔹 Ajout d'un espace en bas pour éviter les débordements
+            ],
+          ),
         ),
       ),
     );

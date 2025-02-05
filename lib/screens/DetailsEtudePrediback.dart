@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'administrationpredibackpage.dart';
 import 'schemarechercheprediback.dart';
-
-
+import 'chart_prediback.dart'; // 🔹 Import du graphique
 
 class DetailsEtudePrediback extends StatelessWidget {
   const DetailsEtudePrediback({super.key});
@@ -22,11 +21,23 @@ class DetailsEtudePrediback extends StatelessWidget {
             _buildSectionTitle("Titre complet"),
             _buildInfoBox(
                 "Identification des facteurs prédictifs des réponses et stratification des patients implantés avec un dispositif médical spécifique."),
+
             _buildSectionTitle("Navigation"),
             _buildNavigationButton(
                 context, "Administration", const AdministrationPredibackPage()),
             _buildNavigationButton(
                 context, "Schéma de Recherche", const SchemaRecherchePrediback()),
+
+            const SizedBox(height: 20),
+
+            _buildSectionTitle("Évolution des inclusions"),
+
+            // 🔹 Intégration du graphique directement sur la page
+            const Expanded(
+              child: PredibackChart(),
+            ),
+
+            const SizedBox(height: 20),
           ],
         ),
       ),

@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'administrationboostdrgpage.dart';
+import 'schemarechercheboostdrg.dart';
+import 'chart_boostdrg.dart'; // 🔹 Import du graphique
 
 class DetailsEtudeBoostDRG extends StatelessWidget {
   const DetailsEtudeBoostDRG({super.key});
@@ -7,8 +10,8 @@ class DetailsEtudeBoostDRG extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Détails de l'étude - BoostDRG"),
-        backgroundColor: Colors.blueGrey, // Couleur par défaut
+        title: const Text("Détails de l'étude - Boost DRG"),
+        backgroundColor: Colors.orange, // 🔸 Couleur spécifique à Boost DRG
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -16,11 +19,25 @@ class DetailsEtudeBoostDRG extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildSectionTitle("Titre complet"),
-            _buildInfoBox("Informations non disponibles pour cette étude."),
-            _buildSectionTitle("Description"),
-            _buildInfoBox("Les détails de cette étude ne sont pas encore fournis."),
-            _buildSectionTitle("Objectif"),
-            _buildInfoBox("Pas d'objectif défini pour cette étude."),
+            _buildInfoBox(
+                "Étude sur la stimulation du ganglion spinal dorsal (DRG) pour les douleurs neuropathiques chroniques."),
+
+            _buildSectionTitle("Navigation"),
+            _buildNavigationButton(
+                context, "Administration", const AdministrationBoostDRGPage()),
+            _buildNavigationButton(
+                context, "Schéma de Recherche", const SchemaRechercheBoostDRG()),
+
+            const SizedBox(height: 20),
+
+            _buildSectionTitle("Évolution des inclusions"),
+
+            // 🔹 Intégration directe du graphique
+            const Expanded(
+              child: BoostDRGChart(),
+            ),
+
+            const SizedBox(height: 20),
           ],
         ),
       ),
@@ -47,6 +64,15 @@ class DetailsEtudeBoostDRG extends StatelessWidget {
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(content),
+    );
+  }
+
+  Widget _buildNavigationButton(BuildContext context, String title, Widget page) {
+    return ElevatedButton(
+      onPressed: () {
+        Navigator.push(context, MaterialPageRoute(builder: (context) => page));
+      },
+      child: Text(title),
     );
   }
 }
