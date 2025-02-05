@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'dart:math';
 import 'accueil.dart';
 
 class AjoutPatientPage extends StatefulWidget {
@@ -16,6 +17,7 @@ class _AjoutPatientPageState extends State<AjoutPatientPage> {
 
   List<String> _etudes = [];
   String? _selectedEtude;
+  String? _patientId;
   DateTime? _selectedDate;
 
   @override
@@ -53,10 +55,14 @@ class _AjoutPatientPageState extends State<AjoutPatientPage> {
     }
   }
 
-  /// **🔹 Incrémente seulement le `nbpatient` dans la table `etude`**
-  Future<void> _incrementNbPatient() async {
-    if (!_formKey.currentState!.validate()) return;
+  /// **🔹 Générer un identifiant patient unique si aucun n'est saisi**
+  String _generateIdentifiant() {
+    return "PAT-${Random().nextInt(9999999)}"; // Génère un identifiant de type PAT-XXXXXXX
+  }
 
+  /// **🔹 Ajouter un patient et mettre à jour le compteur**
+  Future<void> _addPatient() async {
+    if (!_formKey.currentState!.validate()) return;
     _formKey.currentState!.save();
     final currentContext = context;
 
@@ -64,6 +70,24 @@ class _AjoutPatientPageState extends State<AjoutPatientPage> {
       if (!_etudes.contains(_selectedEtude)) {
         throw Exception("L'étude sélectionnée n'est pas valide.");
       }
+
+      // **Générer un identifiant unique si vide**
+      String generatedIdentifiant = _patientId != null && _patientId!.isNotEmpty
+          ? _patientId!
+          : _generateIdentifiant();
+
+      String inclusionDate = _selectedDate != null
+          ? DateFormat('yyyy-MM-dd').format(_selectedDate!)
+          : DateFormat('yyyy-MM-dd').format(DateTime.now());
+
+      debugPrint("📝 Tentative d'insertion...");
+      await supabase.from('patients').insert({
+        'etude': _selectedEtude,
+        'inclusion_date': inclusionDate,
+        'identifiant': generatedIdentifiant, // ✅ Ajout du champ identifiant
+      });
+
+      debugPrint("✅ Patient ajouté avec succès.");
 
       // **🔄 Mise à jour du compteur de patients**
       final etudeResponse = await supabase
@@ -81,12 +105,12 @@ class _AjoutPatientPageState extends State<AjoutPatientPage> {
       }
 
       ScaffoldMessenger.of(currentContext).showSnackBar(
-        const SnackBar(content: Text("Nombre de patients mis à jour avec succès !")),
+        SnackBar(content: Text("Patient ajouté avec succès ! Identifiant : $generatedIdentifiant")),
       );
 
       Navigator.pushReplacement(currentContext, MaterialPageRoute(builder: (context) => const AccueilPage()));
     } catch (e) {
-      debugPrint("❌ Erreur mise à jour nbpatient : $e");
+      debugPrint("❌ Erreur lors de l'ajout du patient : $e");
       ScaffoldMessenger.of(currentContext).showSnackBar(
         SnackBar(content: Text("Erreur : ${e.toString()}")),
       );
@@ -98,7 +122,7 @@ class _AjoutPatientPageState extends State<AjoutPatientPage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.redAccent,
-        title: const Text("Mise à jour des patients", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: const Text("Ajout d'un patient", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -106,6 +130,12 @@ class _AjoutPatientPageState extends State<AjoutPatientPage> {
           key: _formKey,
           child: Column(
             children: [
+              TextFormField(
+                decoration: const InputDecoration(labelText: "Identifiant du patient (optionnel)"),
+                keyboardType: TextInputType.text,
+                onChanged: (value) => _patientId = value,
+              ),
+              const SizedBox(height: 16),
               DropdownButtonFormField<String>(
                 decoration: InputDecoration(
                   labelText: "Nom de l'étude",
@@ -147,7 +177,7 @@ class _AjoutPatientPageState extends State<AjoutPatientPage> {
               ),
               const SizedBox(height: 32),
               ElevatedButton(
-                onPressed: _incrementNbPatient,
+                onPressed: _addPatient,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue,
                   padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
