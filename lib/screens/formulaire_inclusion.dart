@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'dart:math';
 
 class FormulairePage extends StatefulWidget {
   const FormulairePage({super.key});
@@ -12,16 +14,37 @@ class _FormulairePageState extends State<FormulairePage> {
   final SupabaseClient supabase = Supabase.instance.client;
   final _formKey = GlobalKey<FormState>();
 
-  bool? _chronicPain;
-  bool? _fbss;
-  bool? _priorTreatment;
-  bool? _scsTrialEligible;
-  bool? _consent;
-  int? _vasScore;
-  int? _age;
+  bool? _chronicPain, _fbss, _priorTreatment, _scsTrialEligible, _consent;
+  int? _vasScore, _age;
+  DateTime? _selectedDate;
   String inclusionResult = "Aucune étude";
 
-  /// **🔹 Confirmation avant validation**
+  /// **🔹 Sélection de la date d'inclusion**
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2101),
+    );
+    if (picked != null) {
+      setState(() {
+        _selectedDate = picked;
+      });
+    }
+  }
+
+  /// **🔹 Générer un ID patient unique si vide**
+  int _generatePatientId() {
+    return Random().nextInt(900000) + 100000; // 6 chiffres
+  }
+
+  /// **🔹 Générer un identifiant patient unique**
+  String _generateIdentifiant() {
+    return "PAT-${Random().nextInt(9999999)}";
+  }
+
+  /// **🔹 Confirmation avant soumission**
   Future<void> _showConfirmationDialog() async {
     return showDialog<void>(
       context: context,
@@ -50,69 +73,54 @@ class _FormulairePageState extends State<FormulairePage> {
     );
   }
 
-  /// **🔹 Déterminer l'étude et mettre à jour la base de données**
+  /// **🔹 Déterminer l'étude et insérer dans `patients`**
   Future<void> _validateAndSubmit() async {
-    if (_formKey.currentState!.validate()) {
-      _formKey.currentState!.save();
+    if (!_formKey.currentState!.validate()) return;
+    _formKey.currentState!.save();
 
-      // **Arbre décisionnel pour l’inclusion**
-      if (_chronicPain == true && _age != null && _age! >= 18) {
-        if (_fbss == true && _priorTreatment == true && _vasScore != null && _vasScore! >= 50 && _scsTrialEligible == true) {
-          inclusionResult = "Étude sur Prediback";
-        } else if (_vasScore != null && _vasScore! >= 2 && _consent == true) {
-          inclusionResult = "Étude sur Predipain";
-        }
+    if (_chronicPain == true && _age != null && _age! >= 18) {
+      if (_fbss == true && _priorTreatment == true && _vasScore != null && _vasScore! >= 50 && _scsTrialEligible == true) {
+        inclusionResult = "PREDIBACK";
+      } else if (_vasScore != null && _vasScore! >= 2 && _consent == true) {
+        inclusionResult = "PREDIPAIN";
       }
-
-      // **Mettre à jour uniquement le nombre de patients dans l'étude**
-      await _incrementNbPatient(inclusionResult);
     }
-  }
 
-  /// **🔹 Mise à jour du `nbpatient` dans la table `etude`**
-  Future<void> _incrementNbPatient(String study) async {
-    if (study == "Aucune étude") {
+    if (inclusionResult == "Aucune étude") {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Le patient ne remplit pas les critères d'aucune étude.")),
       );
       return;
     }
 
+    await _addPatientToDatabase(inclusionResult);
+  }
+
+  /// **🔹 Ajouter patient à la BDD**
+  Future<void> _addPatientToDatabase(String study) async {
     try {
-      debugPrint("🔍 Mise à jour du nbpatient pour : $study");
+      int patientId = _generatePatientId();
+      String identifiant = _generateIdentifiant();
+      String inclusionDate = _selectedDate != null
+          ? DateFormat('yyyy-MM-dd').format(_selectedDate!)
+          : DateFormat('yyyy-MM-dd').format(DateTime.now());
 
-      final response = await supabase
-          .from('etude')
-          .select('nbpatient')
-          .eq('titre_complet', study)
-          .maybeSingle();
+      await supabase.from('patients').insert({
+        'id': patientId,
+        'etude': study,
+        'inclusion_date': inclusionDate,
+        'identifiant': identifiant,
+      });
 
-      if (response == null || !response.containsKey('nbpatient')) {
-        throw Exception("Aucune donnée trouvée pour l'étude : $study");
-      }
-
-      int currentNbPatient = response['nbpatient'] ?? 0;
-      debugPrint("🔹 Nombre actuel de patients : $currentNbPatient");
-
-      final updateResponse = await supabase
-          .from('etude')
-          .update({'nbpatient': currentNbPatient + 1})
-          .eq('titre_complet', study)
-          .select();
-
-      debugPrint("✅ Réponse après update : $updateResponse");
-
-      if (updateResponse.isEmpty) {
-        throw Exception("La mise à jour a échoué. Vérifiez les conditions de la requête.");
-      }
+      debugPrint("✅ Patient ajouté : ID $patientId, Identifiant $identifiant, Étude : $study");
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Le patient a été ajouté à l'étude : $study")),
+        SnackBar(content: Text("Patient ajouté avec succès à l'étude $study")),
       );
     } catch (e) {
-      debugPrint("❌ Erreur lors de la mise à jour du nombre de patients : $e");
+      debugPrint("❌ Erreur ajout patient : $e");
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Erreur lors de la mise à jour du nombre de patients : ${e.toString()}")),
+        SnackBar(content: Text("Erreur lors de l'ajout du patient : ${e.toString()}")),
       );
     }
   }
@@ -127,9 +135,7 @@ class _FormulairePageState extends State<FormulairePage> {
           children: [
             Expanded(
               child: ElevatedButton(
-                onPressed: () {
-                  setState(() => onChanged(true));
-                },
+                onPressed: () => setState(() => onChanged(true)),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: currentValue == true ? Colors.green : Colors.grey.shade300,
                 ),
@@ -139,9 +145,7 @@ class _FormulairePageState extends State<FormulairePage> {
             const SizedBox(width: 10),
             Expanded(
               child: ElevatedButton(
-                onPressed: () {
-                  setState(() => onChanged(false));
-                },
+                onPressed: () => setState(() => onChanged(false)),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: currentValue == false ? Colors.red : Colors.grey.shade300,
                 ),
@@ -155,7 +159,7 @@ class _FormulairePageState extends State<FormulairePage> {
     );
   }
 
-  /// **🔹 Construction de l'interface**
+  /// **🔹 Interface utilisateur**
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -196,6 +200,22 @@ class _FormulairePageState extends State<FormulairePage> {
                 decoration: const InputDecoration(labelText: "Âge du patient"),
                 keyboardType: TextInputType.number,
                 onSaved: (value) => _age = int.tryParse(value!),
+              ),
+              const SizedBox(height: 16),
+              GestureDetector(
+                onTap: () => _selectDate(context),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey),
+                    borderRadius: BorderRadius.circular(8),
+                    color: Colors.grey.shade200,
+                  ),
+                  child: Text(
+                    _selectedDate == null ? "Sélectionner une date d'inclusion" : DateFormat('dd/MM/yyyy').format(_selectedDate!),
+                    style: const TextStyle(fontSize: 18),
+                  ),
+                ),
               ),
               const SizedBox(height: 32),
               Center(
