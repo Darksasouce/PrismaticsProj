@@ -19,6 +19,7 @@ class _AjoutPatientPageState extends State<AjoutPatientPage> {
   String? _selectedEtude;
   String? _patientId;
   DateTime? _selectedDate;
+  int _nbPatients = 1; // Nouveau champ pour ajouter plusieurs patients
 
   @override
   void initState() {
@@ -26,7 +27,7 @@ class _AjoutPatientPageState extends State<AjoutPatientPage> {
     _fetchEtudes();
   }
 
-  /// **🔹 Récupérer les études disponibles**
+  /// **🔹 Récupérer les études disponibles depuis la base de données**
   Future<void> _fetchEtudes() async {
     try {
       final response = await supabase.from('etude').select('nom');
@@ -55,13 +56,13 @@ class _AjoutPatientPageState extends State<AjoutPatientPage> {
     }
   }
 
-  /// **🔹 Générer un identifiant patient unique si aucun n'est saisi**
+  /// **🔹 Générer un identifiant patient unique**
   String _generateIdentifiant() {
-    return "PAT-${Random().nextInt(9999999)}"; // Génère un identifiant de type PAT-XXXXXXX
+    return "PAT-${Random().nextInt(9999999)}"; // Format : PAT-XXXXXXX
   }
 
-  /// **🔹 Ajouter un patient et mettre à jour le compteur**
-  Future<void> _addPatient() async {
+  /// **🔹 Ajouter un ou plusieurs patients à la base de données**
+  Future<void> _addPatients() async {
     if (!_formKey.currentState!.validate()) return;
     _formKey.currentState!.save();
     final currentContext = context;
@@ -71,25 +72,35 @@ class _AjoutPatientPageState extends State<AjoutPatientPage> {
         throw Exception("L'étude sélectionnée n'est pas valide.");
       }
 
-      // **Générer un identifiant unique si vide**
-      String generatedIdentifiant = _patientId != null && _patientId!.isNotEmpty
-          ? _patientId!
-          : _generateIdentifiant();
-
       String inclusionDate = _selectedDate != null
           ? DateFormat('yyyy-MM-dd').format(_selectedDate!)
           : DateFormat('yyyy-MM-dd').format(DateTime.now());
 
-      debugPrint("📝 Tentative d'insertion...");
-      await supabase.from('patients').insert({
-        'etude': _selectedEtude,
-        'inclusion_date': inclusionDate,
-        'identifiant': generatedIdentifiant, // ✅ Ajout du champ identifiant
-      });
+      List<Map<String, dynamic>> patientsData = [];
 
-      debugPrint("✅ Patient ajouté avec succès.");
+      // **Si un identifiant est renseigné, ajouter un seul patient**
+      if (_patientId != null && _patientId!.isNotEmpty) {
+        patientsData.add({
+          'etude': _selectedEtude,
+          'inclusion_date': inclusionDate,
+          'identifiant': _patientId!,
+        });
+      } else {
+        // **Si aucun identifiant n'est renseigné, générer plusieurs patients**
+        for (int i = 0; i < _nbPatients; i++) {
+          patientsData.add({
+            'etude': _selectedEtude,
+            'inclusion_date': inclusionDate,
+            'identifiant': _generateIdentifiant(),
+          });
+        }
+      }
 
-      // **🔄 Mise à jour du compteur de patients**
+      debugPrint("📝 Ajout de ${patientsData.length} patients...");
+      await supabase.from('patients').insert(patientsData);
+      debugPrint("✅ Patients ajoutés avec succès.");
+
+      // **🔄 Mise à jour du compteur de patients dans la table `etude`**
       final etudeResponse = await supabase
           .from('etude')
           .select('nbpatient')
@@ -98,14 +109,14 @@ class _AjoutPatientPageState extends State<AjoutPatientPage> {
 
       if (etudeResponse != null && etudeResponse['nbpatient'] != null) {
         int currentNbPatient = etudeResponse['nbpatient'];
-        await supabase.from('etude').update({'nbpatient': currentNbPatient + 1}).eq('nom', _selectedEtude);
-        debugPrint("✅ Nombre de patients mis à jour : ${currentNbPatient + 1}");
+        await supabase.from('etude').update({'nbpatient': currentNbPatient + patientsData.length}).eq('nom', _selectedEtude);
+        debugPrint("✅ Nombre de patients mis à jour : ${currentNbPatient + patientsData.length}");
       } else {
         debugPrint("⚠ Problème récupération nbpatient.");
       }
 
       ScaffoldMessenger.of(currentContext).showSnackBar(
-        SnackBar(content: Text("Patient ajouté avec succès ! Identifiant : $generatedIdentifiant")),
+        SnackBar(content: Text("${patientsData.length} patient(s) ajouté(s) avec succès !")),
       );
 
       Navigator.pushReplacement(currentContext, MaterialPageRoute(builder: (context) => const AccueilPage()));
@@ -175,9 +186,16 @@ class _AjoutPatientPageState extends State<AjoutPatientPage> {
                   ),
                 ),
               ),
+              const SizedBox(height: 16),
+              TextFormField(
+                decoration: const InputDecoration(labelText: "Nombre de patients à ajouter"),
+                keyboardType: TextInputType.number,
+                initialValue: "1",
+                onChanged: (value) => _nbPatients = int.tryParse(value) ?? 1,
+              ),
               const SizedBox(height: 32),
               ElevatedButton(
-                onPressed: _addPatient,
+                onPressed: _addPatients,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue,
                   padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),

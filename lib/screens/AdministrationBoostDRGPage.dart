@@ -10,7 +10,7 @@ class AdministrationBoostDRGPage extends StatelessWidget {
         title: const Text("Administration et Financement - BoostDRG"),
         backgroundColor: Colors.blueGrey, // Couleur spécifique pour BoostDRG
       ),
-      body: Padding(
+      body: SingleChildScrollView( // 🔹 Ajout pour éviter les débordements
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -30,7 +30,8 @@ class AdministrationBoostDRGPage extends StatelessWidget {
             _buildSectionTitle("💰 Financements / Milestones"),
             _buildInfoBox("Budget", "Informations financières non disponibles"),
 
-            const Spacer(),
+            const SizedBox(height: 20), // 🔹 Ajout d'un espace en bas
+
             Center(
               child: ElevatedButton.icon(
                 onPressed: () {
@@ -46,6 +47,8 @@ class AdministrationBoostDRGPage extends StatelessWidget {
                 ),
               ),
             ),
+
+            const SizedBox(height: 20), // 🔹 Ajout d'un espace pour éviter tout débordement
           ],
         ),
       ),

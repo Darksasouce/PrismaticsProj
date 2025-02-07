@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'detailsetudepredipain.dart';
 import 'detailsetudeprediback.dart';
 import 'DetailsEtudeBoostDRG.dart';
@@ -14,18 +15,36 @@ class AccueilPage extends StatefulWidget {
 }
 
 class _AccueilPageState extends State<AccueilPage> {
-  final List<Map<String, dynamic>> etudes = [
-    {"nom": "Étude sur Prediback", "page": const DetailsEtudePrediback(), "image": "assets/prediback.png"},
-    {"nom": "Étude sur Predipain", "page": const DetailsEtudePredipain(), "image": "assets/predipain.png"},
-    {"nom": "Étude sur BoostDRG", "page": const DetailsEtudeBoostDRG(), "image": "assets/default_study.png"},
-  ];
+  final SupabaseClient supabase = Supabase.instance.client;
+  List<Map<String, dynamic>> etudes = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchEtudes();
+  }
+
+  /// **Récupère toutes les études depuis la base Supabase**
+  Future<void> _fetchEtudes() async {
+    try {
+      final response = await supabase.from('etude').select('*');
+
+      if (response.isNotEmpty) {
+        setState(() {
+          etudes = List<Map<String, dynamic>>.from(response);
+        });
+      }
+    } catch (e) {
+      debugPrint("❌ Erreur lors de la récupération des études : $e");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.blue.shade300, // Fond bleu
+      backgroundColor: Colors.blue.shade300,
       appBar: AppBar(
-        backgroundColor: Colors.grey.shade300, // Barre grise
+        backgroundColor: Colors.grey.shade300,
         title: const Text("Accueil éditeur", style: TextStyle(color: Colors.black)),
         centerTitle: false,
       ),
@@ -33,7 +52,6 @@ class _AccueilPageState extends State<AccueilPage> {
         padding: const EdgeInsets.all(12.0),
         child: Column(
           children: [
-            // **Boutons du haut agrandis**
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
@@ -44,73 +62,96 @@ class _AccueilPageState extends State<AccueilPage> {
             ),
             const SizedBox(height: 20),
 
-            // **Grille des études**
+            // **Affichage dynamique des études**
             Expanded(
               child: GridView.builder(
                 padding: const EdgeInsets.all(8),
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 4, // 4 colonnes comme dans ton image
+                  crossAxisCount: 4, // Affichage en 4 colonnes
                   crossAxisSpacing: 10,
                   mainAxisSpacing: 10,
                   childAspectRatio: 1,
                 ),
-                itemCount: 12, // 3 études + 9 cases vides
+                itemCount: etudes.length,
                 itemBuilder: (context, index) {
-                  if (index < etudes.length) {
-                    final etude = etudes[index];
-                    return GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => etude["page"]),
-                        );
-                      },
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(8),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black26,
-                              blurRadius: 5,
-                              spreadRadius: 1,
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Image.asset(
-                              etude["image"],
-                              fit: BoxFit.contain,
-                              width: 80,
-                              height: 80,
-                              errorBuilder: (context, error, stackTrace) => const Icon(Icons.image_not_supported, size: 50),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              etude["nom"],
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  } else {
-                    // **Case vide**
-                    return Container(
+                  final etude = etudes[index];
+
+                  return GestureDetector(
+                    onTap: () {
+                      // Ouvre la bonne page selon l'étude
+                      Widget page;
+                      switch (etude["nom"].toString().toLowerCase()) {
+                        case "predipain":
+                          page = const DetailsEtudePredipain();
+                          break;
+                        case "prediback":
+                          page = const DetailsEtudePrediback();
+                          break;
+                        case "boostdrg":
+                          page = const DetailsEtudeBoostDRG();
+                          break;
+                        default:
+                          page = const DetailsEtudePredipain(); // Page par défaut
+                      }
+
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => page),
+                      );
+                    },
+                    child: Container(
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.5),
+                        color: Colors.white,
                         borderRadius: BorderRadius.circular(8),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black26,
+                            blurRadius: 5,
+                            spreadRadius: 1,
+                          ),
+                        ],
                       ),
-                    );
-                  }
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Image.network(
+                            etude["image_url"] ?? 'assets/default_study.png',
+                            fit: BoxFit.contain,
+                            width: 80,
+                            height: 80,
+                            errorBuilder: (context, error, stackTrace) =>
+                            const Icon(Icons.image_not_supported, size: 50),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            etude["nom"] ?? "Étude inconnue",
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            "Catégorie: ${etude["categorie"] ?? "N/A"}",
+                            style: const TextStyle(fontSize: 10),
+                            textAlign: TextAlign.center,
+                          ),
+                          Text(
+                            "N°: ${etude["num"] ?? "N/A"}",
+                            style: const TextStyle(fontSize: 10),
+                            textAlign: TextAlign.center,
+                          ),
+                          Text(
+                            "Investigateur: ${etude["investigateur"] ?? "N/A"}",
+                            style: const TextStyle(fontSize: 10),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
                 },
               ),
             ),
 
-            // **Logos en bas**
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -124,7 +165,7 @@ class _AccueilPageState extends State<AccueilPage> {
     );
   }
 
-  /// **Création des boutons du haut (Agrandis)**
+  /// **Boutons du haut**
   Widget _buildButton(String title, IconData icon, Widget page) {
     return ElevatedButton.icon(
       onPressed: () {
@@ -134,7 +175,7 @@ class _AccueilPageState extends State<AccueilPage> {
       label: Text(title, style: const TextStyle(fontSize: 14, color: Colors.black)),
       style: ElevatedButton.styleFrom(
         backgroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12), // Boutons plus grands
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         side: const BorderSide(color: Colors.blue),
       ),

@@ -11,7 +11,7 @@ class SchemaRecherchePrediback extends StatelessWidget {
         title: const Text('Schéma de la Recherche - Prediback'),
         backgroundColor: Colors.purple,
       ),
-      body: Padding(
+      body: SingleChildScrollView( // 🔹 Ajouté pour éviter le débordement
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -41,7 +41,7 @@ class SchemaRecherchePrediback extends StatelessWidget {
             _buildListTile("HADS : ≥1,4 pts"),
             _buildListTile("Cartographie de la douleur : ≥30 cm²"),
             _buildListTile("EVA : ≥50%"),
-            const SizedBox(height: 32),
+            const SizedBox(height: 20), // 🔹 Ajout d'un espace pour éviter les erreurs
 
             // Bouton de navigation vers Administration
             Center(
@@ -54,9 +54,15 @@ class SchemaRecherchePrediback extends StatelessWidget {
                 },
                 icon: const Icon(Icons.article),
                 label: const Text("Voir Administration"),
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
               ),
             ),
+
+            const SizedBox(height: 20), // 🔹 Ajout d'un espace pour éviter tout débordement
           ],
         ),
       ),

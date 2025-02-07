@@ -1,8 +1,8 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:prismatics/screens/accueil.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'accueil.dart';
 
 class AjoutEtudePage extends StatefulWidget {
   const AjoutEtudePage({super.key});
@@ -38,48 +38,7 @@ class _AjoutEtudePageState extends State<AjoutEtudePage> {
     }
   }
 
-  /// Récupère une image depuis Supabase Storage
-  Future<void> _pickImageFromStorage() async {
-    try {
-      final List<FileObject> files = await supabase.storage.from('etudes_images').list();
-      if (files.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Aucune image trouvée dans Supabase.')));
-        return;
-      }
-
-      String? selectedImage = await showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: const Text("Sélectionner une image"),
-            content: SingleChildScrollView(
-              child: Column(
-                children: files.map((file) {
-                  return ListTile(
-                    title: Text(file.name),
-                    onTap: () {
-                      Navigator.pop(context, file.name);
-                    },
-                  );
-                }).toList(),
-              ),
-            ),
-          );
-        },
-      );
-
-      if (selectedImage != null) {
-        setState(() {
-          _imageName = 'etudes_images/$selectedImage';
-          _imageUrl = supabase.storage.from('etudes_images').getPublicUrl(_imageName!);
-        });
-      }
-    } catch (e) {
-      debugPrint("Erreur lors de la récupération des images : $e");
-    }
-  }
-
-  /// Upload l’image sélectionnée sur Supabase Storage et récupère l’URL publique
+  /// Upload l’image sur Supabase Storage et récupère son URL publique
   Future<void> _uploadImage() async {
     if (_selectedImage == null || _imageName == null) return;
 
@@ -91,28 +50,26 @@ class _AjoutEtudePageState extends State<AjoutEtudePage> {
         _imageUrl = publicUrl;
       });
     } catch (e) {
-      debugPrint('Erreur d\'upload: $e');
+      debugPrint('❌ Erreur d\'upload: $e');
     }
   }
 
-  /// Ajoute une nouvelle étude à la base de données
+  /// **Ajoute une nouvelle étude à la base de données**
   Future<void> _addStudy() async {
     if (_formKey.currentState!.validate()) {
-      final currentContext = context;
-
       try {
         if (_selectedImage != null) {
           await _uploadImage();
         }
 
         if (_imageUrl == null || _imageUrl!.isEmpty) {
-          ScaffoldMessenger.of(currentContext).showSnackBar(
+          ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Veuillez choisir une image avant d\'ajouter une étude.')),
           );
           return;
         }
 
-        await supabase.from('etude').insert({
+        final newEtude = {
           'nom': _nomController.text,
           'num': _numController.text,
           'categorie': _categorieController.text,
@@ -121,19 +78,22 @@ class _AjoutEtudePageState extends State<AjoutEtudePage> {
           'titre_complet': _titreCompletController.text,
           'image_url': _imageUrl!,
           'nbpatient': 0,
-        });
+        };
 
-        ScaffoldMessenger.of(currentContext).showSnackBar(
-          const SnackBar(content: Text('Étude ajoutée avec succès !')),
+        await supabase.from('etude').insert(newEtude);
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('✅ Étude ajoutée avec succès !')),
         );
 
+        // **Navigue vers la page d'accueil et met à jour la liste des études**
         Navigator.pushReplacement(
-          currentContext,
+          context,
           MaterialPageRoute(builder: (context) => const AccueilPage()),
         );
       } catch (e) {
-        debugPrint('Erreur lors de l\'ajout de l\'étude: $e');
-        ScaffoldMessenger.of(currentContext).showSnackBar(
+        debugPrint('❌ Erreur lors de l\'ajout de l\'étude: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Erreur lors de l\'ajout de l\'étude.')),
         );
       }
@@ -143,46 +103,73 @@ class _AjoutEtudePageState extends State<AjoutEtudePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Ajout d'une étude")),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              _buildTextField(label: "Nom de l'étude", controller: _nomController),
-              _buildTextField(label: "N° de l'étude", controller: _numController),
-              _buildTextField(label: "Catégorie", controller: _categorieController),
-              _buildTextField(label: "Investigateur", controller: _investigateurController),
-              _buildTextField(label: "Promoteur", controller: _promoteurController),
-              _buildTextField(label: "Titre complet", controller: _titreCompletController),
-
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: _pickImage,
-                child: const Text("Choisir une image depuis la galerie"),
-              ),
-              ElevatedButton(
-                onPressed: _pickImageFromStorage,
-                child: const Text("Choisir une image depuis Supabase"),
-              ),
-
-              const SizedBox(height: 16),
-              if (_imageUrl != null)
-                Image.network(
-                  _imageUrl!,
-                  height: 100,
-                  errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, size: 50),
+      body: Column(
+        children: [
+          // 🔹 **Bandeau Vert en Haut**
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 20),
+            color: Colors.green,
+            child: const Center(
+              child: Text(
+                "Ajout d'une nouvelle étude",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
                 ),
-
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: _addStudy,
-                child: const Text("Valider"),
               ),
-            ],
+            ),
           ),
-        ),
+
+          // 🔹 **Formulaire**
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16.0),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  children: [
+                    _buildTextField(label: "Nom de l'étude", controller: _nomController),
+                    _buildTextField(label: "N° de l'étude", controller: _numController),
+                    _buildTextField(label: "Catégorie", controller: _categorieController),
+                    _buildTextField(label: "Investigateur", controller: _investigateurController),
+                    _buildTextField(label: "Promoteur", controller: _promoteurController),
+                    _buildTextField(label: "Titre complet", controller: _titreCompletController),
+
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: _pickImage,
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                      child: const Text("📷 Choisir une image depuis la galerie"),
+                    ),
+
+                    const SizedBox(height: 16),
+                    if (_imageUrl != null)
+                      Image.network(
+                        _imageUrl!,
+                        height: 100,
+                        errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, size: 50),
+                      ),
+
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: _addStudy,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
+                        padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
+                      ),
+                      child: const Text(
+                        "✅ Valider",
+                        style: TextStyle(fontSize: 20, color: Colors.white),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -198,7 +185,7 @@ class _AjoutEtudePageState extends State<AjoutEtudePage> {
           filled: true,
           fillColor: Colors.grey.shade200,
         ),
-        validator: (value) => value == null || value.isEmpty ? 'Ce champ est obligatoire' : null,
+        validator: (value) => value == null || value.isEmpty ? '⚠ Ce champ est obligatoire' : null,
       ),
     );
   }
