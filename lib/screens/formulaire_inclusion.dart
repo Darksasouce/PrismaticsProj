@@ -34,7 +34,7 @@ class _FormulairePageState extends State<FormulairePage> {
     }
   }
 
-  /// **🔹 Générer un ID patient unique si vide**
+  /// **🔹 Générer un ID patient unique**
   int _generatePatientId() {
     return Random().nextInt(900000) + 100000; // 6 chiffres
   }
@@ -125,8 +125,8 @@ class _FormulairePageState extends State<FormulairePage> {
     }
   }
 
-  /// **🔹 Question Oui / Non**
-  Widget _buildYesNoQuestion(String question, bool? currentValue, Function(bool) onChanged) {
+  /// **🔹 Question Oui / Non / Ne sais pas**
+  Widget _buildYesNoUnknownQuestion(String question, bool? currentValue, Function(bool?) onChanged) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -152,6 +152,16 @@ class _FormulairePageState extends State<FormulairePage> {
                 child: const Text("Non", style: TextStyle(color: Colors.white)),
               ),
             ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: ElevatedButton(
+                onPressed: () => setState(() => onChanged(null)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: currentValue == null ? Colors.blue : Colors.grey.shade300,
+                ),
+                child: const Text("Ne sais pas", style: TextStyle(color: Colors.white)),
+              ),
+            ),
           ],
         ),
         const SizedBox(height: 16),
@@ -174,19 +184,19 @@ class _FormulairePageState extends State<FormulairePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildYesNoQuestion("Le patient a-t-il des douleurs chroniques depuis plus de 3 mois ?", _chronicPain, (value) {
+              _buildYesNoUnknownQuestion("Le patient a-t-il des douleurs chroniques depuis plus de 3 mois ?", _chronicPain, (value) {
                 setState(() => _chronicPain = value);
               }),
-              _buildYesNoQuestion("Le patient a-t-il subi une chirurgie du dos avec douleur persistante (FBSS) ?", _fbss, (value) {
+              _buildYesNoUnknownQuestion("Le patient a-t-il subi une chirurgie du dos avec douleur persistante (FBSS) ?", _fbss, (value) {
                 setState(() => _fbss = value);
               }),
-              _buildYesNoQuestion("Le patient a-t-il reçu des traitements (médicaments, chirurgie, etc.) sans succès ?", _priorTreatment, (value) {
+              _buildYesNoUnknownQuestion("Le patient a-t-il reçu des traitements (médicaments, chirurgie, etc.) sans succès ?", _priorTreatment, (value) {
                 setState(() => _priorTreatment = value);
               }),
-              _buildYesNoQuestion("Le patient peut-il bénéficier d’un essai de stimulation médullaire (SCS) ?", _scsTrialEligible, (value) {
+              _buildYesNoUnknownQuestion("Le patient peut-il bénéficier d’un essai de stimulation médullaire (SCS) ?", _scsTrialEligible, (value) {
                 setState(() => _scsTrialEligible = value);
               }),
-              _buildYesNoQuestion("Le patient a-t-il donné son consentement pour l'étude ?", _consent, (value) {
+              _buildYesNoUnknownQuestion("Le patient a-t-il donné son consentement pour l'étude ?", _consent, (value) {
                 setState(() => _consent = value);
               }),
               const SizedBox(height: 16),
@@ -195,34 +205,15 @@ class _FormulairePageState extends State<FormulairePage> {
                 keyboardType: TextInputType.number,
                 onSaved: (value) => _vasScore = int.tryParse(value!),
               ),
-              const SizedBox(height: 16),
               TextFormField(
                 decoration: const InputDecoration(labelText: "Âge du patient"),
                 keyboardType: TextInputType.number,
                 onSaved: (value) => _age = int.tryParse(value!),
               ),
               const SizedBox(height: 16),
-              GestureDetector(
-                onTap: () => _selectDate(context),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey),
-                    borderRadius: BorderRadius.circular(8),
-                    color: Colors.grey.shade200,
-                  ),
-                  child: Text(
-                    _selectedDate == null ? "Sélectionner une date d'inclusion" : DateFormat('dd/MM/yyyy').format(_selectedDate!),
-                    style: const TextStyle(fontSize: 18),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 32),
-              Center(
-                child: ElevatedButton(
-                  onPressed: _showConfirmationDialog,
-                  child: const Text("Valider", style: TextStyle(fontSize: 20)),
-                ),
+              ElevatedButton(
+                onPressed: _showConfirmationDialog,
+                child: const Text("Valider", style: TextStyle(fontSize: 20)),
               ),
             ],
           ),

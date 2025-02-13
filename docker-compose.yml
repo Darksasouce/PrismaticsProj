@@ -1,0 +1,28 @@
+services:
+  flutter-app:
+    build: .
+    container_name: flutter_app
+    volumes:
+      - .:/app
+    ports:
+      - "8080:8080"
+    depends_on:
+      - supabase-db
+
+  supabase-db:
+    build: ./backend
+    container_name: supabase_db
+    restart: always
+    environment:
+      POSTGRES_USER: supabase
+      POSTGRES_PASSWORD: supabase
+      POSTGRES_DB: prismatics_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
+
+
