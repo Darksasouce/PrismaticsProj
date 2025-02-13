@@ -13,32 +13,35 @@ class DetailsEtudePrediback extends StatelessWidget {
         title: const Text("Détails de l'étude - Prediback"),
         backgroundColor: Colors.purple,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildSectionTitle("Titre complet"),
-            _buildInfoBox(
-                "Identification des facteurs prédictifs des réponses et stratification des patients implantés avec un dispositif médical spécifique."),
+      body: SingleChildScrollView( // 🔹 Ajout d'un défilement vertical
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildSectionTitle("Titre complet"),
+              _buildInfoBox(
+                  "Identification des facteurs prédictifs des réponses et stratification des patients implantés avec un dispositif médical spécifique."),
 
-            _buildSectionTitle("Navigation"),
-            _buildNavigationButton(
-                context, "Administration", const AdministrationPredibackPage()),
-            _buildNavigationButton(
-                context, "Schéma de Recherche", const SchemaRecherchePrediback()),
+              _buildSectionTitle("Navigation"),
+              _buildNavigationButton(
+                  context, "Administration", const AdministrationPredibackPage()),
+              _buildNavigationButton(
+                  context, "Schéma de Recherche", const SchemaRecherchePrediback()),
 
-            const SizedBox(height: 20),
+              const SizedBox(height: 20),
 
-            _buildSectionTitle("Évolution des inclusions"),
+              _buildSectionTitle("Évolution des inclusions"),
 
-            // 🔹 Intégration du graphique directement sur la page
-            const Expanded(
-              child: PredibackChart(),
-            ),
+              // 🔹 Intégration du graphique dans une boîte avec hauteur fixe
+              SizedBox(
+                height: 400, // 🔹 Ajuste la hauteur du graphique
+                child: const PredibackChart(),
+              ),
 
-            const SizedBox(height: 20),
-          ],
+              const SizedBox(height: 20),
+            ],
+          ),
         ),
       ),
     );

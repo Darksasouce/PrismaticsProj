@@ -13,7 +13,7 @@ class DetailsEtudePredipain extends StatelessWidget {
         title: const Text("Détails de l'étude - Predipain"),
         backgroundColor: Colors.green,
       ),
-      body: SingleChildScrollView( // 🔹 Ajout d'un défilement pour éviter l'overflow
+      body: SingleChildScrollView( // 🔹 Ajout d'un défilement vertical
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
@@ -33,13 +33,13 @@ class DetailsEtudePredipain extends StatelessWidget {
 
               _buildSectionTitle("Évolution des inclusions"), // 🔹 Ajout du titre avant le graphique
 
-              // 🔥 🔹 Intégration directe du graphique ici !
+              // 🔹 Intégration directe du graphique
               SizedBox(
-                height: 400, // Ajuste la hauteur du graphique
+                height: 400, // 🔹 Ajuste la hauteur du graphique
                 child: const PredipainChart(),
               ),
 
-              const SizedBox(height: 20), // 🔹 Ajout d'un espace en bas pour éviter les débordements
+              const SizedBox(height: 20),
             ],
           ),
         ),

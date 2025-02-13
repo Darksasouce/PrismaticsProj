@@ -81,58 +81,60 @@ class _AccueilPageState extends State<AccueilPage> {
         title: const Text("Accueil éditeur", style: TextStyle(color: Colors.black)),
         centerTitle: false,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: Column(
-          children: [
-            // **🔍 Barre de recherche**
-            TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: "Rechercher une étude...",
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                filled: true,
-                fillColor: Colors.white,
-              ),
-            ),
-            const SizedBox(height: 10),
-
-            // **📌 Boutons du haut**
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _buildButton("Formulaire d'Inclusion", Icons.article, const FormulairePage()),
-                _buildButton("Ajout Patient", Icons.person, const AjoutPatientPage()),
-                _buildButton("Ajout Étude", Icons.add_box, const AjoutEtudePage()),
-              ],
-            ),
-            const SizedBox(height: 20),
-
-            // **🔎 Résultats de la recherche sous forme de liste**
-            if (_searchController.text.isNotEmpty)
-              Expanded(
-                child: ListView.builder(
-                  itemCount: filteredEtudes.length,
-                  itemBuilder: (context, index) {
-                    final etude = filteredEtudes[index];
-                    return ListTile(
-                      leading: Icon(Icons.folder, color: Colors.blue.shade700),
-                      title: Text(etude["nom"], style: const TextStyle(fontWeight: FontWeight.bold)),
-                      subtitle: Text("Catégorie: ${etude["categorie"] ?? "N/A"}"),
-                      onTap: () => _navigateToDetails(etude["nom"]),
-                    );
-                  },
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Column(
+            children: [
+              // **🔍 Barre de recherche**
+              TextField(
+                controller: _searchController,
+                decoration: InputDecoration(
+                  hintText: "Rechercher une étude...",
+                  prefixIcon: const Icon(Icons.search),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                  filled: true,
+                  fillColor: Colors.white,
                 ),
               ),
+              const SizedBox(height: 10),
 
-            // **🖼 Affichage dynamique des études en grille**
-            if (_searchController.text.isEmpty)
-              Expanded(
-                child: GridView.builder(
+              // **📌 Boutons du haut**
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _buildButton("Formulaire d'Inclusion", Icons.article, const FormulairePage()),
+                  _buildButton("Ajout Patient", Icons.person, const AjoutPatientPage()),
+                  _buildButton("Ajout Étude", Icons.add_box, const AjoutEtudePage()),
+                ],
+              ),
+              const SizedBox(height: 20),
+
+              // **🔎 Résultats de la recherche sous forme de liste**
+              if (_searchController.text.isNotEmpty)
+                SizedBox(
+                  height: 400,
+                  child: ListView.builder(
+                    itemCount: filteredEtudes.length,
+                    itemBuilder: (context, index) {
+                      final etude = filteredEtudes[index];
+                      return ListTile(
+                        leading: Icon(Icons.folder, color: Colors.blue.shade700),
+                        title: Text(etude["nom"], style: const TextStyle(fontWeight: FontWeight.bold)),
+                        onTap: () => _navigateToDetails(etude["nom"]),
+                      );
+                    },
+                  ),
+                ),
+
+              // **🖼 Affichage dynamique des études en grille**
+              if (_searchController.text.isEmpty)
+                GridView.builder(
+                  shrinkWrap: true, // 🔹 Empêche les erreurs de taille
+                  physics: const NeverScrollableScrollPhysics(), // 🔹 Désactive le scroll pour éviter les conflits
                   padding: const EdgeInsets.all(8),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 4, // 4 colonnes
+                    crossAxisCount: 2, // 🔹 2 colonnes pour une meilleure lisibilité mobile
                     crossAxisSpacing: 10,
                     mainAxisSpacing: 10,
                     childAspectRatio: 1,
@@ -172,39 +174,23 @@ class _AccueilPageState extends State<AccueilPage> {
                               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
                               textAlign: TextAlign.center,
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              "Catégorie: ${etude["categorie"] ?? "N/A"}",
-                              style: const TextStyle(fontSize: 10),
-                              textAlign: TextAlign.center,
-                            ),
-                            Text(
-                              "N°: ${etude["num"] ?? "N/A"}",
-                              style: const TextStyle(fontSize: 10),
-                              textAlign: TextAlign.center,
-                            ),
-                            Text(
-                              "Investigateur: ${etude["investigateur"] ?? "N/A"}",
-                              style: const TextStyle(fontSize: 10),
-                              textAlign: TextAlign.center,
-                            ),
                           ],
                         ),
                       ),
                     );
                   },
                 ),
-              ),
 
-            // **🔻 Logos en bas**
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Image.asset('assets/chupoitiers.png', height: 60),
-                Image.asset('assets/prismatics.png', height: 60),
-              ],
-            ),
-          ],
+              // **🔻 Logos en bas**
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Image.asset('assets/chupoitiers.png', height: 60),
+                  Image.asset('assets/prismatics.png', height: 60),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

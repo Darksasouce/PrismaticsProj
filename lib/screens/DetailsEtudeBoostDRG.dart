@@ -13,32 +13,35 @@ class DetailsEtudeBoostDRG extends StatelessWidget {
         title: const Text("Détails de l'étude - Boost DRG"),
         backgroundColor: Colors.orange, // 🔸 Couleur spécifique à Boost DRG
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildSectionTitle("Titre complet"),
-            _buildInfoBox(
-                "Étude sur la stimulation du ganglion spinal dorsal (DRG) pour les douleurs neuropathiques chroniques."),
+      body: SingleChildScrollView( // 🔹 Ajout du scroll pour mobile
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildSectionTitle("Titre complet"),
+              _buildInfoBox(
+                  "Étude sur la stimulation du ganglion spinal dorsal (DRG) pour les douleurs neuropathiques chroniques."),
 
-            _buildSectionTitle("Navigation"),
-            _buildNavigationButton(
-                context, "Administration", const AdministrationBoostDRGPage()),
-            _buildNavigationButton(
-                context, "Schéma de Recherche", const SchemaRechercheBoostDRG()),
+              _buildSectionTitle("Navigation"),
+              _buildNavigationButton(
+                  context, "Administration", const AdministrationBoostDRGPage()),
+              _buildNavigationButton(
+                  context, "Schéma de Recherche", const SchemaRechercheBoostDRG()),
 
-            const SizedBox(height: 20),
+              const SizedBox(height: 20),
 
-            _buildSectionTitle("Évolution des inclusions"),
+              _buildSectionTitle("Évolution des inclusions"),
 
-            // 🔹 Intégration directe du graphique
-            const Expanded(
-              child: BoostDRGChart(),
-            ),
+              // 🔹 Intégration du graphique dans une boîte avec hauteur fixe
+              SizedBox(
+                height: 400, // Ajuste la hauteur du graphique pour éviter les dépassements
+                child: const BoostDRGChart(),
+              ),
 
-            const SizedBox(height: 20),
-          ],
+              const SizedBox(height: 20),
+            ],
+          ),
         ),
       ),
     );
