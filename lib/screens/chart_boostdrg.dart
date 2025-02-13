@@ -85,13 +85,17 @@ class _BoostDRGChartState extends State<BoostDRGChart> {
 
   @override
   Widget build(BuildContext context) {
+    double screenHeight = MediaQuery.of(context).size.height; // 🔹 Récupérer la hauteur de l’écran
+    double graphHeight = screenHeight * 0.4; // 🔹 Adapter la hauteur du graphique
+
     return isLoading
         ? const Center(child: CircularProgressIndicator())
         : hasData
         ? Column(
       children: [
         const SizedBox(height: 10),
-        Expanded(
+        SizedBox(
+          height: graphHeight, // 🔹 Utilisation de la hauteur dynamique
           child: LineChart(
             LineChartData(
               titlesData: FlTitlesData(

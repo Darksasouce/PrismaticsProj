@@ -86,19 +86,20 @@ class _PredipainChartState extends State<PredipainChart> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Évolution des inclusions PREDIPAIN"),
-        backgroundColor: Colors.blue,
-      ),
-      body: Padding(
+    double screenHeight = MediaQuery.of(context).size.height; // 🔹 Récupérer la hauteur de l’écran
+    double graphHeight = screenHeight * 0.4; // 🔹 Adapter la hauteur du graphique pour mobile
+
+    return SingleChildScrollView( // 🔹 Ajoute un scroll si nécessaire
+      child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: isLoading
             ? const Center(child: CircularProgressIndicator())
             : hasData
             ? Column(
           children: [
-            Expanded(
+            const SizedBox(height: 10),
+            SizedBox(
+              height: graphHeight, // 🔹 Utilisation de la hauteur dynamique
               child: LineChart(
                 LineChartData(
                   titlesData: FlTitlesData(

@@ -85,98 +85,104 @@ class _PredibackChartState extends State<PredibackChart> {
 
   @override
   Widget build(BuildContext context) {
-    return isLoading
-        ? const Center(child: CircularProgressIndicator())
-        : hasData
-        ? Column(
-      children: [
-        const SizedBox(height: 10),
-        Expanded(
-          child: LineChart(
-            LineChartData(
-              titlesData: FlTitlesData(
-                leftTitles: AxisTitles(
-                  axisNameWidget: const Text(
-                    "Nombre de patients",
-                    style: TextStyle(fontWeight: FontWeight.bold),
+    double screenHeight = MediaQuery.of(context).size.height; // 🔹 Récupérer la hauteur de l’écran
+    double graphHeight = screenHeight * 0.4; // 🔹 Adapter la hauteur du graphique pour mobile
+
+    return SingleChildScrollView( // 🔹 Ajoute un scroll si nécessaire
+      child: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : hasData
+          ? Column(
+        children: [
+          const SizedBox(height: 10),
+          SizedBox(
+            height: graphHeight, // 🔹 Utilisation de la hauteur dynamique
+            child: LineChart(
+              LineChartData(
+                titlesData: FlTitlesData(
+                  leftTitles: AxisTitles(
+                    axisNameWidget: const Text(
+                      "Nombre de patients",
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 40,
+                      interval: 1,
+                      getTitlesWidget: (value, meta) {
+                        return value >= 1
+                            ? Text(
+                          value.toInt().toString(),
+                          style: const TextStyle(fontSize: 12),
+                        )
+                            : const SizedBox.shrink();
+                      },
+                    ),
                   ),
-                  sideTitles: SideTitles(
-                    showTitles: true,
-                    reservedSize: 40,
-                    interval: 1,
-                    getTitlesWidget: (value, meta) {
-                      return value >= 1
-                          ? Text(
-                        value.toInt().toString(),
-                        style: const TextStyle(fontSize: 12),
-                      )
-                          : const SizedBox.shrink();
-                    },
+                  bottomTitles: AxisTitles(
+                    axisNameWidget: const Text(
+                      "Date d'inclusion",
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 50,
+                      getTitlesWidget: (value, meta) {
+                        if (dateLabelsMap.containsKey(value)) {
+                          return Transform.rotate(
+                            angle: -0.5,
+                            child: Text(
+                              dateLabelsMap[value]!,
+                              style: const TextStyle(fontSize: 10),
+                            ),
+                          );
+                        }
+                        return const SizedBox.shrink();
+                      },
+                    ),
+                  ),
+                  topTitles: AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                  rightTitles: AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
                   ),
                 ),
-                bottomTitles: AxisTitles(
-                  axisNameWidget: const Text(
-                    "Date d'inclusion",
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                gridData: FlGridData(
+                  show: true,
+                  drawVerticalLine: true,
+                  drawHorizontalLine: true,
+                  verticalInterval: 1,
+                  horizontalInterval: 1,
+                ),
+                borderData: FlBorderData(
+                  show: true,
+                  border: Border.all(color: Colors.grey),
+                ),
+                lineBarsData: [
+                  LineChartBarData(
+                    spots: realInclusions,
+                    isCurved: true,
+                    color: Colors.purple,
+                    dotData: FlDotData(show: true),
+                    belowBarData: BarAreaData(show: false),
                   ),
-                  sideTitles: SideTitles(
-                    showTitles: true,
-                    reservedSize: 50,
-                    getTitlesWidget: (value, meta) {
-                      if (dateLabelsMap.containsKey(value)) {
-                        return Transform.rotate(
-                          angle: -0.5,
-                          child: Text(
-                            dateLabelsMap[value]!,
-                            style: const TextStyle(fontSize: 10),
-                          ),
-                        );
-                      }
-                      return const SizedBox.shrink();
-                    },
-                  ),
-                ),
-                topTitles: AxisTitles(
-                  sideTitles: SideTitles(showTitles: false),
-                ),
-                rightTitles: AxisTitles(
-                  sideTitles: SideTitles(showTitles: false),
-                ),
+                ],
               ),
-              gridData: FlGridData(
-                show: true,
-                drawVerticalLine: true,
-                drawHorizontalLine: true,
-                verticalInterval: 1,
-                horizontalInterval: 1,
-              ),
-              borderData: FlBorderData(
-                show: true,
-                border: Border.all(color: Colors.grey),
-              ),
-              lineBarsData: [
-                LineChartBarData(
-                  spots: realInclusions,
-                  isCurved: true,
-                  color: Colors.purple,
-                  dotData: FlDotData(show: true),
-                  belowBarData: BarAreaData(show: false),
-                ),
-              ],
             ),
           ),
+          const SizedBox(height: 10),
+          const Text(
+            "🟣 Inclusions réelles",
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+        ],
+      )
+          : Center(
+        child: Text(
+          errorMessage,
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
-        const SizedBox(height: 10),
-        const Text(
-          "🟣 Inclusions réelles",
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-        ),
-      ],
-    )
-        : Center(
-      child: Text(
-        errorMessage,
-        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
       ),
     );
   }
